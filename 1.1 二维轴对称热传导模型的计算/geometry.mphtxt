@@ -1,0 +1,116 @@
+# Created by COMSOL Multiphysics Sun Dec 09 09:10:09 2018
+
+
+# Major & minor version
+0 1 
+1 # number of tags
+# Tags
+5 geom1 
+1 # number of types
+# Types
+3 obj 
+
+# --------- Object 0 ----------
+
+0 0 1 
+5 Geom2 # class
+2 # version
+2 # type
+1 # voidsLabeled
+1e-010 # gtol
+0.0001 # resTol
+6 # number of vertices
+# Vertices
+# X Y dom tol
+0.02 0 -1 NAN 
+0.02 0.040000000000000001 -1 NAN 
+0.02 0.10000000000000001 -1 NAN 
+0.02 0.14000000000000001 -1 NAN 
+0.10000000000000001 0 -1 NAN 
+0.10000000000000001 0.14000000000000001 -1 NAN 
+
+6 # number of edges
+# Edges
+# vtx1 vtx2 s1 s2 up down mfd tol
+1 2 0 1 0 1 1 NAN 
+5 1 0 1 0 1 2 NAN 
+2 3 0 1 0 1 3 NAN 
+3 4 0 1 0 1 4 NAN 
+4 6 0 1 0 1 5 NAN 
+6 5 0 1 0 1 6 NAN 
+6 # number of manifolds
+# Manifolds
+
+# Manifold #0
+
+11 BezierCurve # class
+0 0 # version
+2 # sdim
+0 2 1 # transformation
+1 0 # degrees
+2 # number of control points
+# control point coords and weights
+0.02 0 1 
+0.02 0.040000000000000001 1 
+
+# Manifold #1
+
+11 BezierCurve # class
+0 0 # version
+2 # sdim
+0 2 1 # transformation
+1 0 # degrees
+2 # number of control points
+# control point coords and weights
+0.10000000000000001 0 1 
+0.02 0 1 
+
+# Manifold #2
+
+11 BezierCurve # class
+0 0 # version
+2 # sdim
+0 2 1 # transformation
+1 0 # degrees
+2 # number of control points
+# control point coords and weights
+0.02 0.040000000000000001 1 
+0.02 0.10000000000000001 1 
+
+# Manifold #3
+
+11 BezierCurve # class
+0 0 # version
+2 # sdim
+0 2 1 # transformation
+1 0 # degrees
+2 # number of control points
+# control point coords and weights
+0.02 0.10000000000000001 1 
+0.02 0.14000000000000001 1 
+
+# Manifold #4
+
+11 BezierCurve # class
+0 0 # version
+2 # sdim
+0 2 1 # transformation
+1 0 # degrees
+2 # number of control points
+# control point coords and weights
+0.02 0.14000000000000001 1 
+0.10000000000000001 0.14000000000000001 1 
+
+# Manifold #5
+
+11 BezierCurve # class
+0 0 # version
+2 # sdim
+0 2 1 # transformation
+1 0 # degrees
+2 # number of control points
+# control point coords and weights
+0.10000000000000001 0.14000000000000001 1 
+0.10000000000000001 0 1 
+# Attributes
+0 # nof attributes
