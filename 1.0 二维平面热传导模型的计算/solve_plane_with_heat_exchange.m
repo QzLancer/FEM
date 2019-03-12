@@ -34,14 +34,13 @@ Area = (q(:,1).*r(:,2) - q(:,2).*r(:,1))/2;
 EdgR = R(EdgElement);
 EdgZ = Z(EdgElement);
 %过滤掉不需要的线单元，只保留有热交换的线单元，保存其节点和坐标
-%为什么直接查找边界查找不全？？待商榷
 % HeatExcgBond = find(R == 0.02);
-% pHeatExcgBond = find(EdgR(:, 1) == 0.02 & EdgR(:, 2) == 0.02 & ...
-%                       EdgZ(:, 1) >= 0.04 & EdgZ(:, 2) >= 0.04 & ...
-%                       EdgZ(:, 1) <= 0.1 & EdgZ(:, 2) <= 0.1);
-% EdgR1 = EdgR(:, 1);
+pHeatExcgBond = find(EdgR(:, 1) == 0.02 & EdgR(:, 2) == 0.02 & ...
+                      EdgZ(:, 1) >= 0.04 & EdgZ(:, 2) >= 0.04 & ...
+                      EdgZ(:, 1) <= 0.1 & EdgZ(:, 2) <= 0.1);
+EdgR1 = EdgR(:, 1);
 % pHeatExcgBond1 = find(EdgR1 == 0.02);    
-pHeatExcgBond = find(EdgEntity == 2);
+% pHeatExcgBond = find(EdgEntity == 2);
 HeatExcgElement = EdgElement(pHeatExcgBond, :);
 HeatExcgR = EdgR(pHeatExcgBond, :);
 HeatExcgZ = EdgZ(pHeatExcgBond, :);
