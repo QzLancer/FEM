@@ -59,7 +59,7 @@ for k = 1:length(TriElement)
             Se= (pi*Cond*TriRadius(k)*(r(k,i)*r(k,j) + q(k,i)*q(k,j)))/(2*Area(k));
             S(TriElement(k,i),TriElement(k,j)) = S(TriElement(k,i),TriElement(k,j)) + Se;
         end
-        Fe = pi*Source(k)*Area(k)*(R(i)+3*TriRadius(k))/6;
+        Fe = pi*Source(k)*Area(k)*(R(TriElement(k,i))+3*TriRadius(k))/6;
 %         Fe = pi*Source(k)*Area(k)*cofF1(k,i)/15;
         F(TriElement(k,i)) = F(TriElement(k,i)) + Fe;
     end

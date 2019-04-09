@@ -7,7 +7,8 @@
 %By QzLancer
 %-------------------------------读取分网文件
 clear all;
-[Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('mesh_heatexcg.mphtxt');
+[Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('mesh_heatexcg1.mphtxt');
+tic;
 %-------------------------------初始化参数
 Cond = 52;
 BoundTemp = 273.15;
@@ -44,8 +45,6 @@ EdgZ = Z(EdgElement);
 pHeatExcgBond = find(EdgR(:, 1) == 0.02 & EdgR(:, 2) == 0.02 & ...
                       EdgZ(:, 1) >= 0.04 & EdgZ(:, 2) >= 0.04 & ...
                       EdgZ(:, 1) <= 0.1 & EdgZ(:, 2) <= 0.1);
-% pHeatExcgBond1 = find(EdgR1 == 0.02);    
-% pHeatExcgBond = find(EdgEntity == 2);
 HeatExcgElement = EdgElement(pHeatExcgBond, :);
 HeatExcgR = EdgR(pHeatExcgBond, :);
 HeatExcgZ = EdgZ(pHeatExcgBond, :);
@@ -91,6 +90,7 @@ F2 = F(FreeNodes) - F1;
 % EquTemp(FreeNodes) = S(FreeNodes,FreeNodes)\F2;
 % Temp = EquTemp./R;
 Temp(FreeNodes) = S(FreeNodes,FreeNodes)\F2;
+toc;
 %-------------------------------后处理
 Interp1 = scatteredInterpolant(R,Z,Temp);
 % tx = 0:1e-3:0.08;

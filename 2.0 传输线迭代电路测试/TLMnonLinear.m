@@ -7,31 +7,28 @@
 close all;
 clear all;
 
-I0 = 1; R1 = 10; Y0 = 20;
+I0 = 1; R1 = 10; Y0 = 1;
 Vi = 0;
 Vr = 0;
-V = zeros(50,1);
+V = zeros(20,1);
 I2 = 0:0.0001:2;
 Ua = 10-10*I2;
 Uc = I2.^2;
 f = @(I,Vr) I^2*Y0+I-2*Y0*Vr;
 plot(I2,Ua,'k',I2,Uc,'k');
-xlabel('I','FontSize',20,'FontName','Times New Roman');
-ylabel('U','FontSize',20,'FontName','Times New Roman');
-axis([0,4,0,4]);
+axis([0,2,0,8]);
 % ylim([0,1]);
 hold on;
 
 e = 0.00001;
 I21 = 0; Vc = 0;
-for i = 1:20
+for i = 1:length(V)
     %入射过程
     Va = (I0+2*Y0*Vi)/(1/R1+Y0);
     Ia = I0 - Va/R1;
     title(['Step:', num2str(i)]);
     plot(Ia,Va,'Color','k','Marker','.','MarkerSize',10);
     line([I21,Ia],[Vc,Va],'Color','k');
-    pause(1);
     Vr = Va - Vi;
     V(i) = Va;
     %反射过程，I20为左边界，I22为右边界，I21为中点
@@ -69,7 +66,7 @@ for i = 1:20
     Vi = Vc - Vr;
     plot(I21,Vc,'Color','k','Marker','.','MarkerSize',10);
     line([Ia,I21], [Va,Vc],'Color','k');
-    pause(1);
     hold on;
 end
-
+figure(2)
+plot([1:length(V)],V,'s');

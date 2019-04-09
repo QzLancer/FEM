@@ -8,12 +8,14 @@
 %-------------------------------读取分网文件
 clear all;
 [Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('mesh_heatexcg.mphtxt');
+tic;
 %-------------------------------初始化参数
 Cond = 52;
-BoundTemp = 273.15;
-HeatFlux = 5e5;
-Y0 = 1;
-e = 0.00001;
+%找出热源所在单元
+Domain2 = find(TriEntity==2);
+%给所有单元附上热源
+Source = zeros(length(TriElement),1);
+Source(Domain2) = 10000000;
 %-------------------------------根据插值要求求解各单元的几何参数
 %导出所有三角形单元RZ轴的坐标
 R = Coor(:,1);
@@ -38,20 +40,7 @@ RR = zeros(length(TriElement), 1);
 for i = 1:length(TriElement)
     RR(i) = TriR(i, :)*([2,1,1;1,2,1;1,1,2]*TriR(i, :)') / 12;
 end
-%计算出所有线单元的坐标
-EdgR = R(EdgElement);
-EdgZ = Z(EdgElement);
-%过滤掉不需要的线单元，只保留有热交换的线单元，保存其节点和坐标
-pHeatExcgBond = find(EdgR(:, 1) == 0.02 & EdgR(:, 2) == 0.02 & ...
-                      EdgZ(:, 1) >= 0.04 & EdgZ(:, 2) >= 0.04 & ...
-                      EdgZ(:, 1) <= 0.1 & EdgZ(:, 2) <= 0.1);
-HeatExcgElement = EdgElement(pHeatExcgBond, :);
-HeatExcgR = EdgR(pHeatExcgBond, :);
-HeatExcgZ = EdgZ(pHeatExcgBond, :); 
-%计算所有线单元的d
-d = sqrt((HeatExcgR(:, 1) - HeatExcgR(:, 2)).^2 + (HeatExcgZ(:, 1) - HeatExcgZ(:, 2)).^2);
-%计算所有边界单元的平均半径r
-EdgRadius = (HeatExcgR(:, 1) + HeatExcgR(:, 2)) / 2;
+
 %------------------------------导纳矩阵装配，单元系数矩阵求解
 Ym = zeros(length(Coor));
 Se = zeros(3,3,length(TriElement));
@@ -107,6 +96,7 @@ while norm(Va1-Va0)/norm(Va0) >= e
     end
     m = m+1;
 end
+toc;
 %-------------------------------后处理
 Interp1 = scatteredInterpolant(R,Z,Va1);
 % tx = 0:1e-3:0.08;

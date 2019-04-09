@@ -9,7 +9,8 @@
 %2019/3/1
 %-------------------------------读取分网文件
 clear all;
-[Coor,VtxElement,VtxEntity,TriElement,TriEntity,TetElement,TetEntity] = read3Dmesh('3D_rect_mesh.mphtxt');
+[Coor,VtxElement,VtxEntity,TriElement,TriEntity,TetElement,TetEntity] = read3Dmesh('3D_rect_mesh4.mphtxt');
+tic;
 %-------------------------------初始化参数
 Cond = 50;
 BoundTemp = 273.15;
@@ -108,6 +109,7 @@ F1 = S*Temp;
 F2 = F - F1;
 %求解FreeNodes
 Temp(FreeNodes) = S(FreeNodes,FreeNodes)\F2(FreeNodes);
+toc;
 %-------------------------------后处理 先看一下y轴和z轴
 Interp1 = scatteredInterpolant(Y,Z,Temp);
 tx = 0:1e-2:1;
