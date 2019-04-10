@@ -130,10 +130,21 @@ for m = 1:2
     for k = 1:length(PartElementNum)
         for i = 1:3
             for j = 1:3
-                Se(i,j,k)= (pi*Cond*PartTriRadius(k,m)*(Partr(k,i,m)*Partr(k,j,m) + Partq(k,i,m)*Partq(k,j,m)))/(2*PartArea(k,m));
-                PartS(PartElement(k,i,m),PartElement(k,j,m),m) = PartS(PartElement(k,i,m),PartElement(k,j,m),m) + Se(i,j,k);
+                Se = (pi*Cond*PartTriRadius(k,m)*(Partr(k,i,m)*Partr(k,j,m) + Partq(k,i,m)*Partq(k,j,m)))/(2*PartArea(k,m));
+                PartS(PartElement(k,i,m),PartElement(k,j,m),m) = PartS(PartElement(k,i,m),PartElement(k,j,m),m) + Se;
             end
+            Fe = pi*PartSource(k,m)*PartArea(k,m)*(PartR(PartElement(k,i,m),m)+3*PartTriRadius(k,m))/6;
+            PartF(PartElement(k,i,m),m) = PartF(PartElement(k,i,m),m) + Fe;
         end
     end
 end
 %------------------------------TLM迭代过程，每个Part用直接法求解入射过程
+PartY = zeros(length(PartS),length(PartS),2);
+PartI = zeros(length(PartF),2);
+for m = 1:2
+    PartY(PartJunNodeNum(:,m),PartJunNodeNum(:,m),m) = Y0;
+    PartI(PartJunNodeNum(:,m),m) = Y0;
+end
+%第一次入射过程求解
+%反射过程求解
+%入射过程求解
