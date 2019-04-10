@@ -61,7 +61,8 @@ eDomainB0x(:,3) = Coor(DomainB0Node(:,3),1);
 eDomainB0y(:,1) = Coor(DomainB0Node(:,1),2);
 eDomainB0y(:,2) = Coor(DomainB0Node(:,2),2);
 eDomainB0y(:,3) = Coor(DomainB0Node(:,3),2);
-patch(eDomainB0x',eDomainB0y','blue','FaceAlpha',.3);
+% patch(eDomainB0x',eDomainB0y','blue','FaceAlpha',.3);
+patch(eDomainB0x',eDomainB0y','white');
 hold on;
 DomainB1Node = TriElement(Bound1Element,:);
 eDomainB1x(:,1) = Coor(DomainB1Node(:,1),1);
@@ -70,7 +71,8 @@ eDomainB1x(:,3) = Coor(DomainB1Node(:,3),1);
 eDomainB1y(:,1) = Coor(DomainB1Node(:,1),2);
 eDomainB1y(:,2) = Coor(DomainB1Node(:,2),2);
 eDomainB1y(:,3) = Coor(DomainB1Node(:,3),2);
-patch(eDomainB1x',eDomainB1y','red','FaceAlpha',.3);
+% patch(eDomainB1x',eDomainB1y','red','FaceAlpha',.3);
+patch(eDomainB1x',eDomainB1y','white');
 hold on;
 % 找出被重复遍历的节点
 Domain0BoundNode = TriElement(Bound0Element,:);
@@ -88,4 +90,4 @@ for i = 1:length(eDomain)
         end
     end
 end
-plot(Coor(DomainBNode,1),Coor(DomainBNode,2),'.g');
+plot(Coor(DomainBNode,1),Coor(DomainBNode,2),'xg');

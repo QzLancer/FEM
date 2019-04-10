@@ -2,6 +2,7 @@
 %BlackBox-TLM 区域内通过直接法求解，看看是否能够收敛
 %Domain为COMSOL定义的区域 Partition为metis分解得到的区域
 %如果是带边界条件的情况，线单元应该怎么处理？
+%这样好像无法计算，大失败
 %By QzLancer
 %2019/4/9
 %-----------------------------读取文件
@@ -70,12 +71,12 @@ for i = 1:length(ePartition)
     end
 end
 JunNode = unique(JunNode);
-% %-----------------------------两个区域的分离，交界处理
+%-----------------------------两个区域的分离，交界处理
 Part0ElementTable = find(ePartition==0);
 Part1ElementTable = find(ePartition==1);
 Part0Element = TriElement(Part0ElementTable,:);
 Part1Element = TriElement(Part1ElementTable,:);
-% %-----------------------------Partition0面单元分析和装配
+%-----------------------------Partition0面单元分析和装配
 S0 = zeros(length(Coor));
 F0 = zeros(length(Coor),1);
 p0 = p(Part0ElementTable,:);
@@ -83,11 +84,6 @@ q0 = q(Part0ElementTable,:);
 r0 = r(Part0ElementTable,:);
 Area0 = Area(Part0ElementTable,:);
 TriRadius0 = TriRadius(Part0ElementTable,:);
-ST0 = zeros(length(Part0Element));
-FT0 = zeros(length(Part0Element),1);
-for i=1:length(JunNode)
-    ST0(i,i) = Y0;
-end
 for k = 1:length(Part0Element)
     for i = 1:3
         for j = 1:3
@@ -98,7 +94,7 @@ for k = 1:length(Part0Element)
         F0(Part0Element(k,i)) = F0(Part0Element(k,i)) + Fe;
     end
 end
-% %-----------------------------Partition1面单元分析和装配
+%-----------------------------Partition1面单元分析和装配
 S1 = zeros(length(Coor));
 F1 = zeros(length(Coor),1);
 p1 = p(Part1ElementTable,:);
@@ -111,9 +107,18 @@ for k = 1:length(Part1Element)
         for j = 1:3
             Se= (pi*Cond*TriRadius1(k)*(r1(k,i)*r1(k,j) + q1(k,i)*q1(k,j)))/(2*Area1(k));
             S1(Part1Element(k,i),Part1Element(k,j)) = S1(Part1Element(k,i),Part1Element(k,j)) + Se;
-        end
+        end 
         Fe = pi*Source1(Part1ElementTable(k))*Area1(k)*(R(Part1Element(k,i))+3*TriRadius1(k))/6;
         F1(Part1Element(k,i)) = F1(Part1Element(k,i)) + Fe;
     end
 end
-S = S0+S1;
+%-----------------------------两个区域间通过传输线迭代求解
+%Partiton0入射过程
+Vr0 = zeros(length(S0),1);
+Vi0 = zeros(length(S0),1);
+Va0 = zeros(length(S0),1);
+Vc0 = zeros(length(S0),1);
+Temp = zeros(length(Coor),1);
+Boundary = find(Z==0 | Z==0.14 | R==0.1);
+FreeNodes = find(~(Z==0 | Z==0.14 | R==0.1));
+Temp(Boundary) = 273.15;
