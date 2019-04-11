@@ -1,5 +1,5 @@
 %通过传输线来实现被分解的两个区域的信息交换
-%BlackBox-TLM 区域内通过直接法求解，看看是否能够收敛
+%区域内通过直接法求解，看看是否能够收敛
 %Domain为COMSOL定义的区域 Partition为metis分解得到的区域
 %如果是带边界条件的情况，线单元应该怎么处理？
 %把所有的单元和节点分离，各个区域的单元重新编号
@@ -16,6 +16,8 @@ ePartTable = ePartTable+1;
 nPartTable = fscanf(fileID,'%d\n');
 nPartTable = nPartTable+1;
 Y0 = 1;
+e = 0.1;
+Temp = 273.15;
 %------------------------------得到每个Part包含的Element和Node编号
 for i=1:2
     PartElementNum(:,i) = find(ePartTable==i);
@@ -25,11 +27,11 @@ end
 Part1NodeNum = find(nPartTable==1);
 Part2NodeNum = find(nPartTable==2);
 % -----------------------------读取交界处的节点
-PartEleNodeTable = nPartTable(TriElement);
+EleNodeTable = nPartTable(TriElement);
 k = 1; 
 for i = 1:length(ePartTable)
     for j = 1:3
-        if PartEleNodeTable(i,j) ~= ePartTable(i)
+        if EleNodeTable(i,j) ~= ePartTable(i)
             JunNodeNum(k,1) = TriElement(i,j);
             k = k+1;
         end
@@ -104,6 +106,7 @@ TriRadius = (TriR(:,1)+TriR(:,2)+TriR(:,3))./3;
 %-----每个Part的几何参数
 for i = 1:2
     PartR = R(PartNodeNum);
+    PartZ = Z(PartNodeNum);
     PartTriR(:,:,i) = TriR(PartElementNum(:,i),:);
     Partp(:,:,i) = p(PartElementNum(:,i),:);
     Partq(:,:,i) = q(PartElementNum(:,i),:);
@@ -138,13 +141,67 @@ for m = 1:2
         end
     end
 end
+
 %------------------------------TLM迭代过程，每个Part用直接法求解入射过程
+%-----检索出边界
+for m = 1:2
+    PartBoundary{m} = find(PartZ(:,m)==0 | PartZ(:,m)==0.14 | PartR(:,m)==0.1);
+    PartFreeNodes{m} = find(~(PartZ(:,m)==0 | PartZ(:,m)==0.14 | PartR(:,m)==0.1));
+end
+%-----入射和反射过程
 PartY = zeros(length(PartS),length(PartS),2);
 PartI = zeros(length(PartF),2);
+PartVa = zeros(length(PartJunNodeNum),2);
+PartVc = zeros(length(PartJunNodeNum),1);
+PartVi = zeros(length(PartJunNodeNum),2);
+PartVr = zeros(length(PartJunNodeNum),2);
 for m = 1:2
-    PartY(PartJunNodeNum(:,m),PartJunNodeNum(:,m),m) = Y0;
-    PartI(PartJunNodeNum(:,m),m) = Y0;
+    for i = 1:length(PartJunNodeNum)
+        PartY(PartJunNodeNum(i,m),PartJunNodeNum(i,m),m) = Y0;%还是要对角线一个个赋值
+    end
+    PartI(PartJunNodeNum(:,m),m) = 2*PartVi(:,m)*Y0;
 end
 %第一次入射过程求解
-%反射过程求解
-%入射过程求解
+PartSi = PartS+PartY;
+PartFi = PartF+PartI;
+PartV = zeros(length(PartNodeNum),2);
+for m = 1:2
+    PartV(PartBoundary{m},m) = Temp;
+    PartFi(PartFreeNodes{m},m) = PartFi(PartFreeNodes{m},m)-PartSi(PartFreeNodes{m},:,m)*PartV(:,m);
+    PartV(PartFreeNodes{m},m) = PartSi(PartFreeNodes{m},PartFreeNodes{m},m)\PartFi(PartFreeNodes{m},m);
+    PartVa(:,m) = PartV(PartJunNodeNum(:,m),m);
+end
+%开始迭代
+while norm(PartVa(:,1)-PartVa(:,2))>e
+    PartVr = PartVa - PartVi;
+    %反射过程求解
+    PartVc = PartVr(:,1)+PartVr(:,2);
+    PartVi(:,1) = PartVc-PartVr(:,1);
+    PartVi(:,2) = PartVc-PartVr(:,2);
+    %入射过程求解
+    for m = 1:2
+        PartI(PartJunNodeNum(:,m),m) = 2*PartVi(:,m)*Y0;
+    end
+    PartFi = PartF+PartI;
+    PartV = zeros(length(PartNodeNum),2);
+    for m = 1:2
+        PartV(PartBoundary{m},m) = Temp;
+        PartFi(PartFreeNodes{m},m) = PartFi(PartFreeNodes{m},m)-PartSi(PartFreeNodes{m},:,m)*PartV(:,m);
+        PartV(PartFreeNodes{m},m) = PartSi(PartFreeNodes{m},PartFreeNodes{m},m)\PartFi(PartFreeNodes{m},m);
+        PartVa(:,m) = PartV(PartJunNodeNum(:,m),m);
+    end
+end
+%------------------------------后处理
+V = zeros(length(Coor),1);
+for i = 1:length(PartNodeNum)
+    for m = 1:2
+        V(PartNodeNum(i,m)) = PartV(i,m);
+    end
+end
+Interp1 = scatteredInterpolant(R,Z,V);
+tx = 0.02:1e-3:0.1;
+ty = 0:1e-3:0.14;
+[qx,qy] = meshgrid(tx,ty);
+qz = Interp1(qx,qy);
+subplot(1,2,2);
+contourf(qx,qy,qz,20);colorbar;

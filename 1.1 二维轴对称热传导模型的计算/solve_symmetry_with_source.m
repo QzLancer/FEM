@@ -56,8 +56,8 @@ F = zeros(length(Coor),1);
 for k = 1:length(TriElement)
     for i = 1:3
         for j = 1:3
-            Se= (pi*Cond*TriRadius(k)*(r(k,i)*r(k,j) + q(k,i)*q(k,j)))/(2*Area(k));
-            S(TriElement(k,i),TriElement(k,j)) = S(TriElement(k,i),TriElement(k,j)) + Se;
+            Se(i,j,k) = (pi*Cond*TriRadius(k)*(r(k,i)*r(k,j) + q(k,i)*q(k,j)))/(2*Area(k));
+            S(TriElement(k,i),TriElement(k,j)) = S(TriElement(k,i),TriElement(k,j)) + Se(i,j,k);
         end
         Fe = pi*Source(k)*Area(k)*(R(TriElement(k,i))+3*TriRadius(k))/6;
 %         Fe = pi*Source(k)*Area(k)*cofF1(k,i)/15;
