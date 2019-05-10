@@ -1,5 +1,5 @@
-%通过传输线来是想被分解的四个区域的信息交换
-%和二分域不同的地方在于交界点的处理
+%通过传输线来实现被分解的四个区域的信息交换
+%和二分域不同的地方在于交界点的处理，较为麻烦
 %By QzLancer
 %2019/4/11
 %-----------------------------读取文件
@@ -74,24 +74,24 @@ end
 % hold on;
 % plot(PartCoor{4}(:,1),PartCoor{4}(:,2),'.y');
 % hold on;
-% subplot(1,2,1);
-% for m = 1:PartAmount
-%     for i = 1:3
-%         PartElementCoorX{m}(:,i) = PartCoor{m}(PartTriElement{m}(:,i),1);
-%         PartElementCoorY{m}(:,i) = PartCoor{m}(PartTriElement{m}(:,i),2);
-%     end
-% end
-% patch(PartElementCoorX{1}',PartElementCoorY{1}','red','FaceAlpha',.3);
-% hold on;
-% patch(PartElementCoorX{2}',PartElementCoorY{2}','green','FaceAlpha',.3);
-% hold on;
-% patch(PartElementCoorX{3}',PartElementCoorY{3}','blue','FaceAlpha',.3);
-% hold on;
-% patch(PartElementCoorX{4}',PartElementCoorY{4}','yellow','FaceAlpha',.3);
-% hold on;
-% axis equal;
-% plot(PartCoor{1}(PartJunNodeNum{1},1),PartCoor{1}(PartJunNodeNum{1},2),'.w');
-% hold on;
+subplot(1,2,1);
+for m = 1:PartAmount
+    for i = 1:3
+        PartElementCoorX{m}(:,i) = PartCoor{m}(PartTriElement{m}(:,i),1);
+        PartElementCoorY{m}(:,i) = PartCoor{m}(PartTriElement{m}(:,i),2);
+    end
+end
+patch(PartElementCoorX{1}',PartElementCoorY{1}','red','FaceAlpha',.3);
+hold on;
+patch(PartElementCoorX{2}',PartElementCoorY{2}','green','FaceAlpha',.3);
+hold on;
+patch(PartElementCoorX{3}',PartElementCoorY{3}','blue','FaceAlpha',.3);
+hold on;
+patch(PartElementCoorX{4}',PartElementCoorY{4}','yellow','FaceAlpha',.3);
+hold on;
+axis equal;
+plot(PartCoor{1}(PartJunNodeNum{1},1),PartCoor{1}(PartJunNodeNum{1},2),'.w');
+hold on;
 %------------------------------每个单元需要的基本几何参数
 %-----全局单元几何参数求解
 %导出所有三角形单元RZ轴的坐标
@@ -172,6 +172,7 @@ for m = 1:PartAmount
     PartSi{m} = PartS{m}+PartY{m};
 end
 %-----迭代过程
+n=0;
 while (norm(PartV1{1}-PartV0{1})>e)|(norm(PartV1{2}-PartV0{2})>e)|...
         (norm(PartV1{3}-PartV0{3})>e)|(norm(PartV1{4}-PartV0{4})>e)
 % while (norm(PartV1{1}-PartV0{1})>e)|(norm(PartV1{2}-PartV0{2})>e)|...
@@ -205,6 +206,7 @@ while (norm(PartV1{1}-PartV0{1})>e)|(norm(PartV1{2}-PartV0{2})>e)|...
         end
         PartVi{m} = PartVc{m} - PartVr{m};
     end
+    n = n+1;
 end
 %------------------------------后处理
 V = zeros(length(Coor),1);

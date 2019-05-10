@@ -7,7 +7,7 @@
 %By QzLancer
 %-------------------------------读取分网文件
 clear all;
-[Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('mesh_heatexcg.mphtxt');
+[Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('mesh_heatexcg2.mphtxt');
 tic;
 %-------------------------------初始化参数
 Cond = 52;

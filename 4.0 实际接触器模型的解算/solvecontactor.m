@@ -1,25 +1,17 @@
-%通过直接法求解二维轴对称稳态热场
-%这是一个线性问题，包含第一类边界条件和第二类边界条件
-%材料的热导率为52W/(m.K),边界的温度为273.15K，求解域2的单位体积发热为10000000W/m^3
-%参考《The Finite Element Method in Engineering》 P533-P539
-%尝试减小误差
-%2019/2/27
+%实际接触器模型计算，C++求出奇异，用这个来debug
+%2019/5/9
 %By QzLancer
 %-------------------------------读取分网文件
 clear all;
-[Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('mesh_heatexcg.mphtxt');
+[Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('mesh_contactor.mphtxt');
 tic;
-%-------------------------------初始化参数
-Cond = 52;
-BoundTemp = 273.15;
-HeatFlux = 5e5;
 %-------------------------------根据插值要求求解各单元的几何参数
 %导出所有三角形单元RZ轴的坐标
 R = Coor(:,1);
 Z = Coor(:,2);
 TriR = R(TriElement);
 TriZ = Z(TriElement);
-%计算出所有单元的p,q,r和Area
+%计算出所有单元的p,q,r和Area出错 solvecontactor (line 14)
 p(:,1) = TriR(:,2).*TriZ(:,3) - TriZ(:,2).*TriR(:,3);
 p(:,2) = TriR(:,3).*TriZ(:,1) - TriZ(:,3).*TriR(:,1);
 p(:,3) = TriR(:,1).*TriZ(:,2) - TriZ(:,1).*TriR(:,2);
@@ -32,26 +24,32 @@ r(:,3) = TriR(:,2) - TriR(:,1);
 Area = (q(:,1).*r(:,2) - q(:,2).*r(:,1))/2;
 % 三角形所有单元的重心处的半径
 TriRadius = (TriR(:,1)+TriR(:,2)+TriR(:,3))./3;
-%求~R^2
-RR = zeros(length(TriElement), 1);
-for i = 1:length(TriElement)
-    RR(i) = TriR(i, :)*([2,1,1;1,2,1;1,1,2]*TriR(i, :)') / 12;
-end
 %计算出所有线单元的坐标
 EdgR = R(EdgElement);
 EdgZ = Z(EdgElement);
-%过滤掉不需要的线单元，只保留有热交换的线单元，保存其节点和坐标
-% HeatExcgBond = find(R == 0.02);
-pHeatExcgBond = find(EdgR(:, 1) == 0.02 & EdgR(:, 2) == 0.02 & ...
-                      EdgZ(:, 1) >= 0.04 & EdgZ(:, 2) >= 0.04 & ...
-                      EdgZ(:, 1) <= 0.1 & EdgZ(:, 2) <= 0.1);
-HeatExcgElement = EdgElement(pHeatExcgBond, :);
-HeatExcgR = EdgR(pHeatExcgBond, :);
-HeatExcgZ = EdgZ(pHeatExcgBond, :);
-%计算所有线单元的d
-d = sqrt((HeatExcgR(:, 1) - HeatExcgR(:, 2)).^2 + (HeatExcgZ(:, 1) - HeatExcgZ(:, 2)).^2);
+d = sqrt((EdgR(:, 1) - EdgR(:, 2)).^2 + (EdgZ(:, 1) - EdgZ(:, 2)).^2);
 %计算所有边界单元的平均半径r
-EdgRadius = (HeatExcgR(:, 1) + HeatExcgR(:, 2)) / 2;
+EdgRadius = (EdgR(:, 1) + EdgR(:, 2)) / 2;
+%--------------------------------------------------
+%热传导边界定义
+h = zeros(length(EdgEntity),1);
+Text = zeros(length(EdgEntity),1);
+HeatConvBound = find(EdgEntity==2 | EdgEntity==9 | EdgEntity == 49);
+h(HeatConvBound) = 20;
+Text(HeatConvBound) = 293.15;
+a = EdgElement(HeatConvBound,:);
+%负载和热导率定义
+cond = zeros(length(TriEntity), 1);
+Source = zeros(length(TriEntity), 1);
+m1 = find(TriEntity==10 | TriEntity==11);
+Source(m1) = 500000;
+cond(m1) = 400;
+m1 = find(TriEntity == 2 | TriEntity == 3 | TriEntity == 4 | TriEntity == 6 | TriEntity == 8 );
+cond(m1) = 76.2;
+m1 =  find(TriEntity == 1 | TriEntity == 7 | TriEntity == 9);
+cond(m1) = 0.26;
+m1 = find(TriEntity == 5 | TriEntity == 12 | TriEntity == 13);
+cond(m1) = 0.26;
 %------------------------------面单元分析和装配
 S = zeros(length(Coor));
 F = zeros(length(Coor),1);
@@ -59,45 +57,42 @@ Se = zeros(3,3,length(Coor));
 for k = 1:length(TriElement)
     for i = 1:3
         for j = 1:3
-            Se(i,j,k)= (pi*Cond*TriRadius(k)*(r(k,i)*r(k,j) + q(k,i)*q(k,j)))/(2*Area(k));
+            Se(i,j,k)= (pi*cond(k)*TriRadius(k)*(r(k,i)*r(k,j) + q(k,i)*q(k,j)))/(2*Area(k));
 %             Se= Cond .* (r(k,i)*r(k,j) + q(k,i)*q(k,j)) / (4*Area(k));
 %             Se= (pi*Cond*sqrt(RR(k))*(r(k,i)*r(k,j) + q(k,i)*q(k,j)))/(2*Area(k));
             S(TriElement(k,i),TriElement(k,j)) = S(TriElement(k,i),TriElement(k,j)) + Se(i,j,k);
         end
+        Fe = pi*Source(k)*Area(k)*(R(TriElement(k,i))+3*TriRadius(k))/6;
+%         Fe = pi*Source(k)*Area(k)*cofF1(k,i)/15;
+        F(TriElement(k,i)) = F(TriElement(k,i)) + Fe;
     end
 end
+S3 = S;
 %------------------------------线单元分析和装配
-for k = 1:length(HeatExcgElement)
+Fl = zeros(length(EdgElement),2);
+for k = 1:length(EdgElement);
     for i = 1:2
-       Fl = pi*HeatFlux*d(k)*(HeatExcgR(k,i)+2*EdgRadius(k))/3;
-%        Fl = HeatFlux*d(k)/2;
-%《轴对称热传导有限元格式》的方法
-%         Fl = pi*HeatFlux*((EdgRadius(k)*2)^2 + 2*HeatExcgR(k,i)^2)/6;
-        F(HeatExcgElement(k, i)) = F(HeatExcgElement(k, i)) + Fl;
+       for j = 1:2
+           if i == j
+               Sl =  pi*h(k)*d(k)*(2*EdgRadius(k)+2*R(EdgElement(k,i)))/6;
+           else
+               Sl =  pi*h(k)*d(k)*(2*EdgRadius(k))/6;
+           end
+               S(EdgElement(k,i), EdgElement(k,j)) = S(EdgElement(k,i), EdgElement(k,j)) + Sl;
+       end
+       Fl(k,i) = pi*h(k)*Text(k)*d(k)*(2*EdgRadius(k)+R(EdgElement(k,i)))/3;
+       F(EdgElement(k,i)) = F(EdgElement(k,i)) + Fl(k,i);
     end
 end
-%-------------------------------采用直接法求解
-%检索出边界点
-% EquTemp = zeros(length(Coor),1);
-Temp = zeros(length(Coor),1);
-Boundary = find(Z==0 | Z==0.14 | R==0.1);
-FreeNodes = find(~(Z==0 | Z==0.14 | R==0.1));
-
-% EquTemp(Boundary) = 273.15.*R(Boundary);
-Temp(Boundary) = BoundTemp;
-% F1 = S(FreeNodes,:)*EquTemp;
-F1 = S(FreeNodes,:)*Temp;
-F2 = F(FreeNodes) - F1;
-% EquTemp(FreeNodes) = S(FreeNodes,FreeNodes)\F2;
-% Temp = EquTemp./R;
-Temp(FreeNodes) = S(FreeNodes,FreeNodes)\F2;
+% %-------------------------------采用直接法求解
+    Temp = S\F;
 toc;
 %-------------------------------后处理
 Interp1 = scatteredInterpolant(R,Z,Temp);
 % tx = 0:1e-3:0.08;
 % ty = 0:1e-3:0.14;
-tx = 0.02:1e-3:0.1;
-ty = 0:1e-3:0.14;
+tx = 0:1e-3:0.026;
+ty = -0.025:1e-3:0.024;
 [qx,qy] = meshgrid(tx,ty);
 qz = Interp1(qx,qy);
 % mesh(qx,qy,qz);
@@ -118,7 +113,7 @@ for i = 1:Edglength
     hold on;
 end
 %-------------------------读取COMSOL计算出来的结果并进行后处理
-[fileID, Errmessage] = fopen('solve_heatexcg.txt', 'r');
+[fileID, Errmessage] = fopen('solve.txt', 'r');
 if fileID == -1
     disp(Errmessage);
 end
